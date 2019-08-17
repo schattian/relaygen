@@ -33,7 +33,7 @@ func New{{.Name}}Cursor(offset int, id fmt.Stringer) *{{.Name}}Cursor {
 	return &{{.Name}}Cursor{Offset: offset, ID: id.String()}
 }
 
-func Encode{{.Name}}Cursor(cursor {{.Name}}Cursor) string {
+func Encode{{.Name}}Cursor(cursor *{{.Name}}Cursor) string {
 	b, err := msgpack.Marshal(cursor)
 	if err != nil {
 		panic("unable to marshal cursor: " + err.Error())
