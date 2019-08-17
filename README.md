@@ -11,7 +11,7 @@ go get -u github.com/hookactions/gqlgen-relay
 
 2a. Go code
 ```go
-//go:generate go run github.com/hookactions/gqlgen-relay -pkg model -name User -type *User -cursor > user_relay.go
+//go:generate sh -c "go run github.com/hookactions/gqlgen-relay -pkg model -name User -type *User -cursor > user_relay.go"
 package model
 
 type User struct {
