@@ -2,30 +2,25 @@
 GraphQL Relay support for gqlgen
 
 ## Usage
-1. Install `gen`
-
+1. Add relay
 ```bash
-go get github.com/clipperhouse/gen
+go get -u github.com/hookactions/gqlgen-relay
 ```
 
-2. Add relay
-```bash
-gen add github.com/hookactions/gqlgen-relay
-```
+2. Add to code
 
-3. Add to code
-
-3a. Go code
+2a. Go code
 ```go
+//go:generate go run github.com/hookactions/gqlgen-relay -pkg model -name User -type *User -cursor > user_relay.go
 package model
 
-// +gen relayNode relayCursor
 type User struct {
-	FirstName, LastName string
+	FirstName string 
+    LastName string
 }
 ```
 
-3b. schema.graphql
+2b. schema.graphql
 
 ```graphql
 interface Node {
@@ -56,7 +51,7 @@ type UserConnection {
 }
 ```
 
-3c. gqlgen.yaml
+2c. gqlgen.yaml
 
 ```yaml
 ...
@@ -65,9 +60,9 @@ models:
   # ...
   # New
   PageInfo:
-    model: github.com/hookactions/gqlgen-relay.PageInfo
+    model: github.com/hookactions/gqlgen-relay/relay.PageInfo
   Node:
-    model: github.com/hookactions/gqlgen-relay.Node
+    model: github.com/hookactions/gqlgen-relay/relay.Node
   User:
     model: github.com/your/package/model.User
   UserEdge:
