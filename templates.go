@@ -36,7 +36,7 @@ func New{{.Name}}Cursor(offset int, id fmt.Stringer) *{{.Name}}Cursor {
 func Encode{{.Name}}Cursor(cursor *{{.Name}}Cursor) string {
 	b, err := msgpack.Marshal(cursor)
 	if err != nil {
-		panic("unable to marshal cursor: " + err.Error())
+		panic("unable to marshal {{.Name}} cursor: " + err.Error())
 	}
 	return base64.StdEncoding.EncodeToString(b)
 }
@@ -57,9 +57,84 @@ func Decode{{.Name}}Cursor(cursor string) (*{{.Name}}Cursor, error) {
 func MustDecode{{.Name}}Cursor(cursor string) *{{.Name}}Cursor {
 	decoded, err := Decode{{.Name}}Cursor(cursor)
 	if err != nil {
-		panic("unable to decode cursor: " + err.Error())
+		panic("unable to decode {{.Name}} cursor: " + err.Error())
 	}
 	return decoded
+}
+
+var {{.Name}}InvalidPagination = errors.New("{{.Name}} invalid pagination parameters")
+
+type {{.Name}}PaginationFunc = func(offset, limit int) (items []*{{.Name}}, total *int, err error)
+
+func New{{.Name}}Page(defaultLimit int, first *int, afterCursor *string, beforeCursor *string, paginate {{.Name}}PaginationFunc) (*{{.Name}}Connection, error) {
+	offset := 0
+	limit := defaultLimit
+
+	if first != nil {
+		limit = *first
+	}
+
+	if afterCursor != nil && beforeCursor != nil {
+		return nil, {{.Name}}InvalidPagination
+	}
+
+	if afterCursor != nil {
+		out, err := Decode{{.Name}}Cursor(*afterCursor)
+		if err != nil {
+			return nil, err
+		}
+
+		offset = out.Offset + 1
+	} else if beforeCursor != nil {
+		out, err := Decode{{.Name}}Cursor(*beforeCursor)
+		if err != nil {
+			return nil, err
+		}
+
+		offset = out.Offset - limit
+	}
+
+	page := &{{.Name}}Connection{}
+ 
+	items, total, err := paginate(offset, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, item := range items {
+		page.Edges = append(page.Edges, {{.Name}}Edge{
+			Cursor: Encode{{.Name}}Cursor(New{{.Name}}Cursor(offset+i, item.GetID())),
+			Node:   item,
+		})
+	}
+
+	startCursor, endCursor := (*string)(nil), (*string)(nil)
+	if len(page.Edges) > 0 {
+		startCursor = relay.NewString(page.Edges[0].Cursor)
+		endCursor = relay.NewString(page.Edges[len(page.Edges)-1].Cursor)
+	}
+
+	hasNextPage := false
+	hasPreviousPage := offset > 0
+
+	if total != nil {
+		if afterCursor != nil {
+			// we don't need to do total - 1 because of out.Offset + 1
+			hasNextPage = (offset + len(items)) < *total
+		} else {
+			hasNextPage = (offset + len(items)) < *total - 1
+		}
+	}
+
+	page.PageInfo = relay.PageInfo{
+		HasNextPage:     hasNextPage, 
+		HasPreviousPage: hasPreviousPage,
+		StartCursor:     startCursor,
+		EndCursor:       endCursor,
+	}
+	page.TotalCount = total
+
+	return page, nil
 }
 `
 
