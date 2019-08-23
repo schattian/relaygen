@@ -4,14 +4,14 @@ GraphQL Relay support for gqlgen
 ## Usage
 1. Add relay
 ```bash
-go get -u github.com/hookactions/gqlgen-relay
+go get -u gitlab.com/hookactions/gqlgen-relay
 ```
 
 2. Add to code
 
 2a. Go code
 ```go
-//go:generate sh -c "go run github.com/hookactions/gqlgen-relay -pkg model -name User -type *User -cursor > user_relay.go"
+//go:generate sh -c "go run gitlab.com/hookactions/gqlgen-relay -pkg model -name User -type *User -cursor > user_relay.go"
 package model
 
 type User struct {
@@ -60,13 +60,13 @@ models:
   # ...
   # New
   PageInfo:
-    model: github.com/hookactions/gqlgen-relay/relay.PageInfo
+    model: gitlab.com/hookactions/gqlgen-relay/relay.PageInfo
   Node:
-    model: github.com/hookactions/gqlgen-relay/relay.Node
+    model: gitlab.com/hookactions/gqlgen-relay/relay.Node
   User:
-    model: github.com/your/package/model.User
+    model: gitlab.com/your/package/model.User
   UserEdge:
-    model: github.com/your/package/model.UserEdge
+    model: gitlab.com/your/package/model.UserEdge
   UserConnection:
-    model: github.com/your/package/model.UserConnection
+    model: gitlab.com/your/package/model.UserConnection
 ```
