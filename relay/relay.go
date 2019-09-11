@@ -2,7 +2,7 @@ package relay
 
 import "fmt"
 
-type ID interface{
+type ID interface {
 	fmt.Stringer
 }
 
@@ -12,10 +12,10 @@ type Node interface {
 }
 
 type PageInfo struct {
-	HasNextPage     bool    `json:"hasNextPage"`
-	HasPreviousPage bool    `json:"hasPreviousPage"`
-	StartCursor     *string `json:"startCursor"`
-	EndCursor       *string `json:"endCursor"`
+	HasNextPage     bool    `bson:"hasNextPage"`
+	HasPreviousPage bool    `bson:"hasPreviousPage"`
+	StartCursor     *string `bson:"startCursor"`
+	EndCursor       *string `bson:"endCursor"`
 }
 
 func NewString(s string) *string {

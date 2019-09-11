@@ -1,4 +1,4 @@
-module gitlab.com/hookactions/gqlgen-relay
+module gitlab.com/sebach1/gqlgen-relay
 
 go 1.12
 
