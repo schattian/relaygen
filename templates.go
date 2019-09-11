@@ -10,15 +10,15 @@ package {{.Pkg}}
 
 // {{.Name}}Edge is the edge representation of {{.Name}}
 type {{.Name}}Edge struct {
-	Cursor string ` + "`json:\"cursor\"`" + `
-	Node   *{{.Type}}   ` + "`json:\"{{.Name}}\"`" + `
+	Cursor string ` + "`{{.Marshal}}:\"cursor\"`" + `
+	Node   *{{.Type}}   ` + "`{{.Marshal}}:\"{{.Name}}\"`" + `
 }
 
 // {{.Name}}Connection is the connection containing edges of {{.Name}}
 type {{.Name}}Connection struct {
-	Edges      []{{.Type}}Edge   ` + "`json:\"node\"`" + `
-	PageInfo   relay.PageInfo  ` + "`json:\"pageInfo\"`" + `
-	TotalCount *int           ` + "`json:\"totalCount\"`" + `
+	Edges      []{{.Type}}Edge   ` + "`{{.Marshal}}:\"node\"`" + `
+	PageInfo   relay.PageInfo  ` + "`{{.Marshal}}:\"pageInfo\"`" + `
+	TotalCount *int           ` + "`{{.Marshal}}:\"totalCount\"`" + `
 }
 
 type {{.Name}}PaginationFunc = func(offset, limit int) (items []*{{.Type}}, total *int, err error)
@@ -102,8 +102,8 @@ var nodeTemplate = template.Must(template.New("node").Parse(node))
 const cursor = `
 // Cursor is the main pagination actor 
 type Cursor struct {
-	Offset int   ` + "`json:\"offset\"`" + `
-	ID     string  ` + "`json:\"id\"`" + `
+	Offset int   ` + "`{{.Marshal}}:\"offset\"`" + `
+	ID     string  ` + "`{{.Marshal}}:\"id\"`" + `
 }
 
 // NewCursor creates a new cursor given an offset and an id

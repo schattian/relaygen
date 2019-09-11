@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"flag"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -13,9 +12,10 @@ import (
 )
 
 type data struct {
-	Pkg  string
-	Name string
-	Type string
+	Pkg     string
+	Name    string
+	Marshal string
+	Type    string
 	// Mode string
 
 	RenderCursorTemplate bool
@@ -26,15 +26,6 @@ func pipeline(funcs ...func() error) error {
 		if err := f(); err != nil {
 			return err
 		}
-	}
-
-	return nil
-}
-func cp(writer io.WriteCloser, reader bytes.Buffer) error {
-	fmt.Println(&reader)
-	_, err := io.Copy(writer, &reader)
-	if err != nil {
-		return err
 	}
 	return nil
 }
@@ -49,11 +40,12 @@ func cpToStdout(rc io.ReadCloser) error {
 
 func main() {
 	var d data
-	flag.StringVar(&d.Pkg, "pkg", "relay", "The name of the package.")
+	flag.StringVar(&d.Pkg, "pkg", "relay", "String. The name of the package where the generated entities will live. Default: relay.")
 	// flag.StringVar(&d.Mode, "mode", "w", "The mode used. Could be: w (default) for write, a for append")
-	flag.StringVar(&d.Name, "name", "", "The name of the type to generate for.")
-	flag.StringVar(&d.Type, "type", "", "The type to generate for.")
-	flag.BoolVar(&d.RenderCursorTemplate, "cursor", false, "Generate cursor template")
+	flag.StringVar(&d.Marshal, "marshal", "bson", "String. The marshaling mode for the generated fields. Default: bson.")
+	flag.StringVar(&d.Name, "name", "", "String. The name of the entity to generate its relay types. Required.")
+	flag.StringVar(&d.Type, "type", "", "String. The entity type used in your GQL pipelines (usually the pointer to the entity). Required.")
+	flag.BoolVar(&d.RenderCursorTemplate, "cursor", false, "Boolean. Generate cursor template. Default: false.")
 	flag.Parse()
 
 	var out bytes.Buffer
@@ -89,9 +81,12 @@ func main() {
 	}()
 
 	var err error
-	if err = cp(wc, out); err != nil {
+
+	_, err = io.Copy(wc, &out)
+	if err != nil {
 		log.Fatal(err)
 	}
+
 	if err = wc.Close(); err != nil {
 		log.Fatal(err)
 	}
