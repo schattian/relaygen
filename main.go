@@ -67,7 +67,6 @@ func main() {
 		}
 	}
 
-	//	panic(&out)
 	//		switch d.Mode {
 	//	case "w":
 	////
@@ -77,7 +76,9 @@ func main() {
 
 	rc, wc, errCh := pipe.Commands(
 		exec.Command("gofmt"),
+		exec.Command("goimports"),
 	)
+
 	go func() {
 		select {
 		case err, ok := <-errCh:
