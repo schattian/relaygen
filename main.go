@@ -30,14 +30,6 @@ func pipeline(funcs ...func() error) error {
 	return nil
 }
 
-func cpToStdout(rc io.ReadCloser) error {
-	_, err := io.Copy(os.Stdout, rc)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func main() {
 	var d data
 	flag.StringVar(&d.Pkg, "pkg", "relay", "String. The name of the package where the generated entities will live. Default: relay.")
@@ -50,11 +42,14 @@ func main() {
 
 	var out bytes.Buffer
 
-	if err := nodeTemplate.Execute(&out, d); err != nil {
+	err := nodeTemplate.Execute(&out, d)
+	if err != nil {
 		log.Fatal(err)
 	}
+
 	if d.RenderCursorTemplate {
-		if err := cursorTemplate.Execute(&out, d); err != nil {
+		err := cursorTemplate.Execute(&out, d)
+		if err != nil {
 			log.Fatal(err)
 		}
 	}
@@ -68,29 +63,33 @@ func main() {
 
 	rc, wc, errCh := pipe.Commands(
 		exec.Command("gofmt"),
-		exec.Command("goimports"),
+		//		exec.Command("goimports"),
 	)
 
-	go func() {
+	go func(ch <-chan error) {
 		select {
-		case err, ok := <-errCh:
-			if ok && err != nil {
+		case err := <-ch:
+			if err != nil {
 				panic(err)
 			}
 		}
-	}()
-
-	var err error
+		return
+	}(errCh)
+	panic(&out)
 
 	_, err = io.Copy(wc, &out)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err = wc.Close(); err != nil {
+	err = wc.Close()
+	if err != nil {
 		log.Fatal(err)
 	}
-	if err = cpToStdout(rc); err != nil {
+
+	_, err = io.Copy(os.Stdout, rc)
+	if err != nil {
 		log.Fatal(err)
 	}
+
 }

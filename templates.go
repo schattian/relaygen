@@ -11,42 +11,45 @@ package {{.Pkg}}
 // {{.Name}}Edge is the edge representation of {{.Name}}
 type {{.Name}}Edge struct {
 	Cursor string ` + "`{{.Marshal}}:\"cursor\"`" + `
-	Node   *{{.Type}}   ` + "`{{.Marshal}}:\"{{.Name}}\"`" + `
+	Node   {{.Type}}   ` + "`{{.Marshal}}:\"{{.Name}}\"`" + `
 }
 
 // {{.Name}}Connection is the connection containing edges of {{.Name}}
 type {{.Name}}Connection struct {
-	Edges      []{{.Type}}Edge   ` + "`{{.Marshal}}:\"node\"`" + `
+	Edges      []*{{.Name}}Edge   ` + "`{{.Marshal}}:\"node\"`" + `
 	PageInfo   relay.PageInfo  ` + "`{{.Marshal}}:\"pageInfo\"`" + `
 	TotalCount *int           ` + "`{{.Marshal}}:\"totalCount\"`" + `
 }
 
-type {{.Name}}PaginationFunc = func(offset, limit int) (items []*{{.Type}}, total *int, err error)
+type {{.Name}}PaginationFunc = func(offset, limit int) (items []{{.Type}}, total *int, err error)
 
 // New{{.Name}}Page creates a new page from a pagination func of {{.Name}}
-func New{{.Name}}Page
- (limit int, first *int, afterCursor *string, beforeCursor *string, paginate {{.Name}}PaginationFunc)
- (*{{.Name}}Connection, error) {
+func New{{.Name}}Page(limit int, first *int, afterCursor *string, beforeCursor *string, paginate {{.Name}}PaginationFunc) (
+*{{.Name}}Connection, error) {
 	var decoded bool
 	var offset int
+	var err error
+
 	if first != nil {
 		limit = *first
 	}
 
 	if afterCursor != nil {
 		out, err := DecodeCursor(*afterCursor)
+		if err != nil {
+			return nil, err
+		}
 		offset = out.Offset + 1
 		decoded = true
 	} 
 
 	if !decoded && beforeCursor != nil {
 		out, err := DecodeCursor(*beforeCursor)
+		if err != nil {
+			return nil, err
+		}
 		offset = out.Offset - limit
 		decoded = true 
-	}
-
-	if err != nil {
-		return nil, err
 	}
 
 	if !decoded{
@@ -58,11 +61,12 @@ func New{{.Name}}Page
 		return nil, err
 	}
 
-	var page *{{.Name}}Connection{}
-	
+	var page *{{.Name}}Connection
+	var i int
+
 	for i, item := range items {
-		page.Edges = append(page.Edges, {{.Name}}Edge{
-			Cursor: EncoderCursor(NewCursor(offset+i, item.ID)),
+		page.Edges = append(page.Edges, &{{.Name}}Edge{
+			Cursor: EncodeCursor(NewCursor(offset+i, item.ID)),
 			Node:   item,
 		})
 	}
@@ -122,7 +126,7 @@ func EncodeCursor(cursor *Cursor) string {
 
 // DecodeCursor decodes a cursor (string) into a Cursor struct
 func DecodeCursor(encCursor string) (decCursor *Cursor, err error) {
-	stdDecCursor, err = base64.StdEncoding.DecodeString(encCursor)
+	stdDecCursor, err := base64.StdEncoding.DecodeString(encCursor)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to decode cursor")
 	}
