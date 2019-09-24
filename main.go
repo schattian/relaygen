@@ -63,7 +63,7 @@ func main() {
 
 	rc, wc, errCh := pipe.Commands(
 		exec.Command("gofmt"),
-		//		exec.Command("goimports"),
+		exec.Command("goimports"),
 	)
 
 	go func(ch <-chan error) {
@@ -75,7 +75,6 @@ func main() {
 		}
 		return
 	}(errCh)
-	panic(&out)
 
 	_, err = io.Copy(wc, &out)
 	if err != nil {

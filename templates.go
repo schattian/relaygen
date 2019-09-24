@@ -83,7 +83,7 @@ func New{{.Name}}Page(limit int, first *int, afterCursor *string, beforeCursor *
 
 	if total != nil {
 		if afterCursor == nil {
-			*total -= 1
+			*total-- 
 		}
 		hasNextPage = (offset + edgesSz) < *total
 	}
@@ -139,6 +139,7 @@ func DecodeCursor(encCursor string) (decCursor *Cursor, err error) {
 	return decCursor, err
 }
 
+// MustDecodeCursor ensures the cursor decoding
 func MustDecodeCursor(encCursor string) *Cursor {
 	decCursor, err := DecodeCursor(encCursor)
 	if err != nil {
