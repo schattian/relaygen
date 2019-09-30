@@ -22,8 +22,8 @@ func main() {
 
 	flag.StringVar(&d.Pkg, "pkg", "relay", "String. The name of the package where the generated entities will live. Default: relay.")
 	flag.StringVar(&d.Marshal, "marshal", "bson", "String. The marshaling mode for the generated fields. Default: bson.")
-	flag.StringVar(&d.Name, "name", "", "String. The name of the entity to generate its relay types. Required.")
-	flag.StringVar(&d.Type, "type", "", "String. The entity type used in your GQL pipelines (usually the pointer to the entity w/pkg name). Required.")
+	flag.StringVar(&d.Name, "name", "", "String. The name of the entity to generate its relay types. Required if not base.")
+	flag.StringVar(&d.Type, "type", "", "String. The entity type used in your GQL pipelines (usually the pointer to the entity w/pkg name). Required if not base.")
 	flag.BoolVar(&d.IsSDL, "sdl", false, "Boolean. Generate the SDL into a .graphql file for the desired template. Default: false.")
 	flag.BoolVar(&d.RenderBaseTemplate, "base", false, "Boolean. Generate the base template with the common interfaces. Default: false.")
 	flag.Parse()
