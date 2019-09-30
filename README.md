@@ -4,7 +4,9 @@ GraphQL Relay support for gqlgen. Using code generation assists the boilerplates
 
 ## Installation
 
-Dependencies: go1.13
+Dependencies:
+
+- go 1.13
 
 `go get -u github.com/sebach1/relaygen`
 
@@ -12,7 +14,9 @@ Dependencies: go1.13
 
 > For further details about usage, use the relaygen CLI help cmd `relaygen --help`
 
-The default output is given to the STDOUT, so you can preview any generation omitting the `> <FILE>` boilerplate.
+Notice that the default output is given to the **STDOUT**, so you can preview any generation omitting the `> <FILE>` boilerplate.
+
+<br>
 
 1. Add the base boilerplate to support relay dep injections on  golang models:
 
