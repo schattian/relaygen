@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -27,6 +28,12 @@ func main() {
 	flag.BoolVar(&d.IsSDL, "sdl", false, "Boolean. Generate the SDL into a .graphql file for the desired template. Default: false.")
 	flag.BoolVar(&d.RenderBaseTemplate, "base", false, "Boolean. Generate the base template with the common interfaces. Default: false.")
 	flag.Parse()
+
+	err = d.validate()
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	err = d.selectTemplate().Execute(&out, d)
 
@@ -89,6 +96,15 @@ func (d *data) commands() []*exec.Cmd {
 		return []*exec.Cmd{}
 	}
 	return []*exec.Cmd{exec.Command("gofmt"), exec.Command("goimports")}
+}
+
+func (d *data) validate() (err error) {
+	if d.RenderBaseTemplate {
+		if d.Name == "" || d.Type == "" {
+			return errors.New("Name or Type flags cannot be empty when calling a non-base generation")
+		}
+	}
+	return nil
 }
 
 func (d *data) selectTemplate() (temp *template.Template) {

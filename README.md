@@ -20,7 +20,7 @@ Notice that the default output is given to the **STDOUT**, so you can preview an
 
 1. Add the base boilerplate to support relay dep injections on  golang models:
 
-`relaygen > <FILENAME>.go`
+`relaygen -base > <FILENAME>.go`
 
 2. Add the schema interface & relay definitions:
   
