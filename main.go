@@ -3,70 +3,50 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/exec"
+	"sync"
+	"text/template"
 
 	"github.com/joncalhoun/pipe"
 )
 
-type data struct {
-	Pkg     string
-	Name    string
-	Marshal string
-	Type    string
-	// Mode string
-
-	RenderCursorTemplate bool
-}
-
-func pipeline(funcs ...func() error) error {
-	for _, f := range funcs {
-		if err := f(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func main() {
+	var wg sync.WaitGroup
+	var err error
+	var out bytes.Buffer
 	var d data
+
 	flag.StringVar(&d.Pkg, "pkg", "relay", "String. The name of the package where the generated entities will live. Default: relay.")
-	// flag.StringVar(&d.Mode, "mode", "w", "The mode used. Could be: w (default) for write, a for append")
 	flag.StringVar(&d.Marshal, "marshal", "bson", "String. The marshaling mode for the generated fields. Default: bson.")
 	flag.StringVar(&d.Name, "name", "", "String. The name of the entity to generate its relay types. Required.")
-	flag.StringVar(&d.Type, "type", "", "String. The entity type used in your GQL pipelines (usually the pointer to the entity). Required.")
-	flag.BoolVar(&d.RenderCursorTemplate, "cursor", false, "Boolean. Generate cursor template. Default: false.")
+	flag.StringVar(&d.Type, "type", "", "String. The entity type used in your GQL pipelines (usually the pointer to the entity w/pkg name). Required.")
+	flag.BoolVar(&d.IsSDL, "sdl", false, "Boolean. Generate the SDL into a .graphql file for the desired template. Default: false.")
+	flag.BoolVar(&d.RenderBaseTemplate, "base", false, "Boolean. Generate the base template with the common interfaces. Default: false.")
 	flag.Parse()
 
-	var out bytes.Buffer
+	err = d.selectTemplate().Execute(&out, d)
 
-	err := nodeTemplate.Execute(&out, d)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if d.RenderCursorTemplate {
-		err := cursorTemplate.Execute(&out, d)
-		if err != nil {
-			log.Fatal(err)
-		}
+	cmds := d.commands()
+
+	// BREAKPOINT: If there arent commands, ommit the processing
+	if len(cmds) == 0 {
+		fmt.Println(&out)
+		return
 	}
 
-	//		switch d.Mode {
-	//	case "w":
-	////
-	//	case "a":
-	//
-	//	}
+	rc, wc, errCh := pipe.Commands(cmds...)
 
-	rc, wc, errCh := pipe.Commands(
-		exec.Command("gofmt"),
-		exec.Command("goimports"),
-	)
-
-	go func(ch <-chan error) {
+	wg.Add(1)
+	go func(ch <-chan error, wg *sync.WaitGroup) {
+		defer wg.Done()
 		select {
 		case err := <-ch:
 			if err != nil {
@@ -74,7 +54,7 @@ func main() {
 			}
 		}
 		return
-	}(errCh)
+	}(errCh, &wg)
 
 	_, err = io.Copy(wc, &out)
 	if err != nil {
@@ -91,4 +71,39 @@ func main() {
 		log.Fatal(err)
 	}
 
+	wg.Wait()
+}
+
+type data struct {
+	Pkg     string
+	Name    string
+	Marshal string
+	Type    string
+
+	RenderBaseTemplate bool
+	IsSDL              bool
+}
+
+func (d *data) commands() []*exec.Cmd {
+	if d.IsSDL {
+		return []*exec.Cmd{}
+	}
+	return []*exec.Cmd{exec.Command("gofmt"), exec.Command("goimports")}
+}
+
+func (d *data) selectTemplate() (temp *template.Template) {
+	if d.RenderBaseTemplate {
+		if d.IsSDL {
+			temp = sdlBaseTemplate
+		} else {
+			temp = baseTemplate
+		}
+	} else {
+		if d.IsSDL {
+			temp = sdlEntityTemplate
+		} else {
+			temp = entityTemplate
+		}
+	}
+	return temp
 }

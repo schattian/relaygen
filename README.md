@@ -1,26 +1,16 @@
 # gqlgen-relay
+
 GraphQL Relay support for gqlgen
 
 ## Usage
+
 1. Add relay
-```bash
-go get -u gitlab.com/hookactions/gqlgen-relay
+
+```sh
+go get -u gitlab.com/sebach1/gqlgen-relay
 ```
 
-2. Add to code
-
-2a. Go code
-```go
-//go:generate sh -c "go run gitlab.com/hookactions/gqlgen-relay -pkg model -name User -type *User -cursor > user_relay.go"
-package model
-
-type User struct {
-	FirstName string 
-    LastName string
-}
-```
-
-2b. schema.graphql
+b. schema.graphql
 
 ```graphql
 interface Node {
